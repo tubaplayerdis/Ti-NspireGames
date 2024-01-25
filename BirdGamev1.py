@@ -4,10 +4,7 @@ from ti_system import *
 from time import *
 from random import *
 
-
-
 key=""
-
 
 #playervars
 plx=15
@@ -15,6 +12,7 @@ ply=70
 score = 0
 didwin = 0
 hs=-1
+doplay=1
 #debugvars
 colls = 0#this does not work, but it dosent matter since it only taker one to fail
 #enemyvars
@@ -28,13 +26,15 @@ speed = 1.5
 dif = 80
 mindif = 30
 
-print(get_screen_dim())  
-debag = input("Mode: ")
-print("Running In debug: "+debag)
-debag = int(debag)
 
-
-
+def drawplayer(x, y):
+  set_color(255,140,0)
+  fill_circle(x+5,y+5,8)
+  set_color(200,0,0)
+  fill_circle(x,y,10)
+  set_color(0,0,0)
+  draw_line(x+9,y+12,x+18,y+9)
+  draw_line(x+9,y+6,x+18,y+9)
 
 try:
   hs = recall_value("hsbird")
@@ -45,14 +45,47 @@ except Exception as e:
    hs=0
 
 
+print(get_screen_dim())  
+debag = 0
+set_window(0,317,0,211)
+while True:
+  use_buffer()
+  clear()
+  
+  drawplayer(50,160)
+  drawplayer(230,150)
+  
+  set_color(117,216,230)
+  draw_text(110,100,"Bird game v1.0")
+  set_color(0,0,0)
+  draw_text(110,80,"High score: "+str(hs))
+  draw_text(80,20,"esc – quit          enter – play")
+  paint_buffer()
+  key=get_key()
+  
+  if key=="esc":
+    doplay=0
+    break
+  if key=="enter":
+    break
+  if key=="8":
+    debag=1
+    break
+
 
 print("Assume TPS is 100 on emulator")
-#CreateWindow
-set_window(0,317,0,211)
+#CreateWindow not needed
+
+def makeref(obj):
+  ref=obj
+
 x,y=159,106
 #main loop
 while key != "esc":
   tps=ticks_cpu()/clock()
+  if debag:
+    fpse=get_time_ms()
+    makeref(fpse)
   use_buffer()
   #basedraw
   clear()
@@ -63,13 +96,7 @@ while key != "esc":
   set_color(0,200,0)
   fill_rect(0,0,317,11)
   #Draw player
-  set_color(255,140,0)
-  fill_circle(plx+5,ply+5,8)
-  set_color(200,0,0)
-  fill_circle(plx,ply,10)
-  set_color(0,0,0)
-  draw_line(plx+9,ply+12,plx+18,ply+9)
-  draw_line(plx+9,ply+6,plx+18,ply+9)
+  drawplayer(plx,ply)
   
   
   #Enemys
@@ -103,6 +130,7 @@ while key != "esc":
     break
   
   #Counters
+  
   set_color(0,0,0)
   #DEBUG
   if debag == 1:
@@ -114,6 +142,8 @@ while key != "esc":
     draw_text(2,115,"colls: "+str(colls))
     draw_text(2,100,"speed: "+str(speed))
     draw_text(2,85,"catx: "+str(catx))
+    fps=float(1000/(get_time_ms()-fpse))
+    draw_text(2,70,"FPS:"+str(fps))
   else:
     draw_text(2,190,"Score: "+str(score))
   #VERY IMPORTANT NO MORE DRAWS
@@ -132,7 +162,7 @@ while key != "esc":
       if ply >210 or ply < 10:
        ply = 100
       else:
-       ply=ply+10
+       ply=ply+15
   else:
     if key=="up":
      if ply >210 or ply < 10:
@@ -144,14 +174,16 @@ while key != "esc":
         ply = 100
       else:
         ply=ply-1
-set_color(255,0,0)
-if debag == 0:
-  if score > hs:
-    hs=score
-    store_value("hsbird",hs)
-  draw_text(90,100,"Score: "+str(score)+"High Score: "+str(hs))
-  print("Game was played")
-else:
-  draw_text(170,100,"You Lost")
-  print("Game was lost")
-print("Score: "+str(score))
+        
+if doplay==1:
+  set_color(255,0,0)
+  if debag == 0:
+    if score > hs:
+      hs=score
+      store_value("hsbird",hs)
+    draw_text(90,100,"Score: "+str(score)+" High Score: "+str(hs))
+    print("Game was played")
+  else:
+    draw_text(190,100,"You Lost")
+    print("Game was lost")
+  print("Score: "+str(score))
